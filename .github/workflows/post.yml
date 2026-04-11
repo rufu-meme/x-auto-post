@@ -1,19 +1,25 @@
 name: X Auto Post
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '0 22 * * *'
-    - cron: '0 3 * * *'
-    - cron: '0 11 * * *'
+    - cron:
+  workflow_dispatch: '0 22 * * *'
+    - cron:
+  workflow_dispatch: '0 3 * * *'
+    - cron:
+  workflow_dispatch: '0 11 * * *'
 
 jobs:
   post:
-    runs-on: ubuntu-latest
+    runs-on:
+  workflow_dispatch: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version:
+  workflow_dispatch: '18'
       - run: npm install
       - run: node auto_post.js
         env:
