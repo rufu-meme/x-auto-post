@@ -4,7 +4,6 @@ const fs = require("fs");
 const path = require("path");
 
 const TWEETS_FILE = path.join(__dirname, "tweets.json");
-const LOG_FILE    = path.join(__dirname, "posted.log");
 
 const client = new TwitterApi({
   appKey:       process.env.API_KEY,
@@ -14,44 +13,37 @@ const client = new TwitterApi({
 });
 const rwClient = client.readWrite;
 
-function log(message) {
-  const line = `[${new Date().toLocaleString("ja-JP")}] ${message}`;
-  console.log(line);
-  fs.appendFileSync(LOG_FILE, line + "\n", "utf8");
-}
-
-function loadPostedIds() {
-  if (!fs.existsSync(LOG_FILE)) return new Set();
-  const lines = fs.readFileSync(LOG_FILE, "utf8").split("\n");
-  const ids = new Set();
-  for (const line of lines) {
-    const m = line.match(/POSTED id=(\d+)/);
-    if (m) ids.add(Number(m[1]));
-  }
-  return ids;
-}
-
-function pickTweet() {
-  const all      = JSON.parse(fs.readFileSync(TWEETS_FILE, "utf8"));
-  const posted   = loadPostedIds();
-  const unposted = all.filter((t) => !posted.has(t.id));
-  if (unposted.length === 0) {
-    log("⚠️ 全ツイート投稿済み → リセットして最初の1件を使用");
-    return all[0] ?? null;
-  }
-  return unposted[Math.floor(Math.random() * unposted.length)];
-}
-
 (async () => {
-  const tweet = pickTweet();
-  if (!tweet) { log("❌ ツイートが見つかりません"); process.exit(1); }
-  try {
-    const result = await rwClient.v2.tweet(tweet.content);
-    log(`✅ POSTED id=${tweet.id} tweet_id=${result.data.id}`);
-    log(`   内容: ${tweet.content.replace(/\n/g, " ").slice(0, 60)}...`);
-  } catch (err) {
-    log(`❌ 投稿失敗: ${err.message}`);
-    if (err.data) log(`   API Error: ${JSON.stringify(err.data)}`);
-    process.exit(1);
+  const tweets = JSON.parse(fs.readFileSync(TWEETS_FILE, "utf8"));
+
+  // 現在のJST時刻
+  const now = new Date();
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const hh = String(jst.getUTCHours()).padStart(2, "0");
+  const mm = String(jst.getUTCMinutes()).padStart(2, "0");
+  const currentTime = `${hh}:${mm}`;
+
+  // 今日が基準日から何日目か（0始まり）
+  const BASE_DATE = new Date("2025-01-01T00:00:00Z");
+  const dayIndex = Math.floor((jst - BASE_DATE) / (1000 * 60 * 60 * 24));
+
+  // 同じ時刻帯のツイートを抽出
+  const slotTweets = tweets.filter(t => t.time === currentTime);
+
+  if (slotTweets.length === 0) {
+    console.log("投稿対象なし:", currentTime);
+    process.exit(0);
   }
+
+  // 日付でローテーション（ログ不要・完全自動）
+  const tweet = slotTweets[dayIndex % slotTweets.length];
+
+  if (process.env.TEST_MODE === "true") {
+    console.log("[TEST] day:", dayIndex, "| index:", dayIndex % slotTweets.length);
+    console.log("[TEST]", tweet.content);
+    process.exit(0);
+  }
+
+  await rwClient.v2.tweet(tweet.content);
+  console.log("投稿完了 day:", dayIndex, "->", tweet.content.slice(0, 30));
 })();
