@@ -1,26 +1,39 @@
 name: X Auto Post
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 22 * * *"
-    - cron: "0 3 * * *"
-    - cron: "0 11 * * *"
-    - cron: "0 13 * * *"
+workflow_dispatch:
+schedule:
+- cron: '0 22 * * *'
+- cron: '0 3 * * *'
+- cron: '0 11 * * *'
+- cron: '0 13 * * *'
 
 jobs:
-  post:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-      - run: npm install
-      - run: node post_once.js
-        env:
-          API_KEY: ${{ secrets.API_KEY }}
-          API_SECRET: ${{ secrets.API_SECRET }}
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-          TEST_MODE: ${{ secrets.TEST_MODE }}
+post:
+runs-on: ubuntu-latest
+steps:
+- name: Checkout code
+uses: actions/checkout@v4
+with:
+persist-credentials: false
+token: ''
+
+- name: Fix git permissions
+run: |
+sudo chown -R runner:runner .
+chmod -R u+rwX .
+
+- uses: actions/setup-node@v4
+with:
+node-version: '18'
+
+- run: npm install
+
+- run: node post_once.js
+
+env:
+API_KEY: ${{ secrets.API_KEY }}
+API_SECRET: ${{ secrets.API_SECRET }}
+ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+TEST_MODE: ${{ secrets.TEST_MODE }}
