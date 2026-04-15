@@ -3,10 +3,10 @@ name: X Auto Post
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 22 * * *'   # 22:00 (日本時間 7:00)
-    - cron: '0 3 * * *'    # 03:00 (日本時間 12:00)
-    - cron: '0 11 * * *'   # 11:00 (日本時間 20:00)
-    - cron: '0 13 * * *'   # 13:00 (日本時間 22:00)
+    - cron: '0 22 * * *'   # 22:00 UTC (日本時間 翌7:00)
+    - cron: '0 3 * * *'    # 03:00 UTC (日本時間 12:00)
+    - cron: '0 11 * * *'   # 11:00 UTC (日本時間 20:00)
+    - cron: '0 13 * * *'   # 13:00 UTC (日本時間 22:00)
 
 jobs:
   post:
@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          token: ''
+          # token: ''   # 必要なければ削除推奨
 
       - name: Fix git permissions
         run: |
@@ -32,7 +32,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run auto post
+      - name: Run X auto post
         run: node post_once.js
         env:
           API_KEY: ${{ secrets.API_KEY }}
