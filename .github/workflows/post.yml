@@ -12,17 +12,19 @@ jobs:
   post:
     runs-on: ubuntu-latest
 
+    # 環境変数（secrets）をここにまとめて定義
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
+      API_SECRET: ${{ secrets.API_SECRET }}
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+      TEST_MODE: ${{ secrets.TEST_MODE }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          # token: ''   # 必要なければ削除推奨
-
-      - name: Fix git permissions
-        run: |
-          sudo chown -R runner:runner .
-          chmod -R u+rwX .
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,9 +36,3 @@ jobs:
 
       - name: Run X auto post
         run: node post_once.js
-        env:
-          API_KEY: ${{ secrets.API_KEY }}
-          API_SECRET: ${{ secrets.API_SECRET }}
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-          TEST_MODE: ${{ secrets.TEST_MODE }}
