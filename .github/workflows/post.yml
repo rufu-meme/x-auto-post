@@ -1,39 +1,42 @@
 name: X Auto Post
 
 on:
-workflow_dispatch:
-schedule:
-- cron: '0 22 * * *'
-- cron: '0 3 * * *'
-- cron: '0 11 * * *'
-- cron: '0 13 * * *'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 22 * * *'   # 22:00 (日本時間 7:00)
+    - cron: '0 3 * * *'    # 03:00 (日本時間 12:00)
+    - cron: '0 11 * * *'   # 11:00 (日本時間 20:00)
+    - cron: '0 13 * * *'   # 13:00 (日本時間 22:00)
 
 jobs:
-post:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout code
-uses: actions/checkout@v4
-with:
-persist-credentials: false
-token: ''
+  post:
+    runs-on: ubuntu-latest
 
-- name: Fix git permissions
-run: |
-sudo chown -R runner:runner .
-chmod -R u+rwX .
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          token: ''
 
-- uses: actions/setup-node@v4
-with:
-node-version: '18'
+      - name: Fix git permissions
+        run: |
+          sudo chown -R runner:runner .
+          chmod -R u+rwX .
 
-- run: npm install
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-- run: node post_once.js
+      - name: Install dependencies
+        run: npm install
 
-env:
-API_KEY: ${{ secrets.API_KEY }}
-API_SECRET: ${{ secrets.API_SECRET }}
-ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-TEST_MODE: ${{ secrets.TEST_MODE }}
+      - name: Run auto post
+        run: node post_once.js
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          API_SECRET: ${{ secrets.API_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+          TEST_MODE: ${{ secrets.TEST_MODE }}
