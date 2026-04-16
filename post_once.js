@@ -16,18 +16,21 @@ const rwClient = client.readWrite;
 (async () => {
   const tweets = JSON.parse(fs.readFileSync(TWEETS_FILE, "utf8"));
 
-  // 現在のJST時刻
+  // SLOT環境変数（workflow.ymlから渡される固定JST時刻）を使用
+  // ローカル実行時のフォールバック用に現在のJST時刻も計算
   const now = new Date();
   const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   const hh = String(jst.getUTCHours()).padStart(2, "0");
   const mm = String(jst.getUTCMinutes()).padStart(2, "0");
-  const currentTime = `${hh}:${mm}`;
+  const currentTime = process.env.SLOT || `${hh}:${mm}`;
+
+  console.log("対象スロット:", currentTime);
 
   // 今日が基準日から何日目か（0始まり）
   const BASE_DATE = new Date("2025-01-01T00:00:00Z");
   const dayIndex = Math.floor((jst - BASE_DATE) / (1000 * 60 * 60 * 24));
 
-  // 同じ時刻帯のツイートを抽出
+  // 指定スロットのツイートを抽出
   const slotTweets = tweets.filter(t => t.time === currentTime);
 
   if (slotTweets.length === 0) {
@@ -35,7 +38,7 @@ const rwClient = client.readWrite;
     process.exit(0);
   }
 
-  // 日付でローテーション（ログ不要・完全自動）
+  // 日付でローテーション
   const tweet = slotTweets[dayIndex % slotTweets.length];
 
   if (process.env.TEST_MODE === "true") {
