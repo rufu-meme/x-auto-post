@@ -3,40 +3,112 @@ name: X Auto Post
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 22 * * *'   # 22:00 UTC (日本時間 翌7:00)
-    - cron: '0 3 * * *'    # 03:00 UTC (日本時間 12:00)
-    - cron: '0 11 * * *'   # 11:00 UTC (日本時間 20:00)
-    - cron: '0 13 * * *'   # 13:00 UTC (日本時間 22:00)
+    - cron: '0 22 * * *'   # JST 07:00
+    - cron: '0 3 * * *'    # JST 12:00
+    - cron: '0 11 * * *'   # JST 20:00
+    - cron: '0 13 * * *'   # JST 22:00
 
 jobs:
-  post:
+  post-0700:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 22 * * *'
     runs-on: ubuntu-latest
-
     env:
       API_KEY: ${{ secrets.API_KEY }}
       API_SECRET: ${{ secrets.API_SECRET }}
       ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
       TEST_MODE: ${{ secrets.TEST_MODE }}
-
+      SLOT: "07:00"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-
       - name: Fix git permissions
-        run: |
-          sudo chown -R runner:runner .
-          chmod -R u+rwX .
-
+        run: sudo chown -R runner:runner . && chmod -R u+rwX .
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-
       - name: Install dependencies
         run: npm install
+      - name: Run X auto post
+        run: node post_once.js
 
+  post-1200:
+    if: github.event.schedule == '0 3 * * *'
+    runs-on: ubuntu-latest
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
+      API_SECRET: ${{ secrets.API_SECRET }}
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+      TEST_MODE: ${{ secrets.TEST_MODE }}
+      SLOT: "12:00"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fix git permissions
+        run: sudo chown -R runner:runner . && chmod -R u+rwX .
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm install
+      - name: Run X auto post
+        run: node post_once.js
+
+  post-2000:
+    if: github.event.schedule == '0 11 * * *'
+    runs-on: ubuntu-latest
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
+      API_SECRET: ${{ secrets.API_SECRET }}
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+      TEST_MODE: ${{ secrets.TEST_MODE }}
+      SLOT: "20:00"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fix git permissions
+        run: sudo chown -R runner:runner . && chmod -R u+rwX .
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm install
+      - name: Run X auto post
+        run: node post_once.js
+
+  post-2200:
+    if: github.event.schedule == '0 13 * * *'
+    runs-on: ubuntu-latest
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
+      API_SECRET: ${{ secrets.API_SECRET }}
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+      TEST_MODE: ${{ secrets.TEST_MODE }}
+      SLOT: "22:00"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fix git permissions
+        run: sudo chown -R runner:runner . && chmod -R u+rwX .
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm install
       - name: Run X auto post
         run: node post_once.js
